@@ -1,2 +1,2 @@
-# meridian
+* meridian
 tsdb ideas
