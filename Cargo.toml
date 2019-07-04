@@ -5,3 +5,9 @@ authors = ["wilypomegranate <wilypomegranate@users.noreply.github.com>"]
 edition = "2018"
 
 [dependencies]
+byteorder = "1.3.2"
+csv = "1.1.1"
+threadpool = "1.7.1"
+crossbeam = "0.7.1"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0.40"
