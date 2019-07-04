@@ -9,8 +9,11 @@ fn main() -> std::io::Result<()> {
     let mut csv_reader = Reader::from_reader(io::stdin());
     let mut count: usize = 0;
 
-    let file = File::create("test.out")?;
-    let mut buffered = BufWriter::new(file);
+    // let file = File::create("test.out")?;
+    // let mut buffered = BufWriter::new(file);
+
+    let mut writer = Database::new("test");
+    let metric_id = writer.add_metric("test", "test.out");
 
     for result in csv_reader.records() {
         for item in result.iter() {
@@ -18,7 +21,8 @@ fn main() -> std::io::Result<()> {
             let ts: u64 = iter.next().unwrap().parse().unwrap();
             let value: u64 = iter.next().unwrap().parse().unwrap();
             let sample: Sample<u64, File> = Sample::new(ts, value);
-            sample.write(&mut buffered);
+            writer.add_sample_u64(metric_id, sample);
+            // sample.write(&mut buffered);
             // buffered.write_u64::<NativeEndian>(ts).unwrap();
             // buffered.write_u64::<NativeEndian>(value).unwrap();
             // println!("ts: {} value: {}", ts, value);

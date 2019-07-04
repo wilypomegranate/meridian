@@ -1,5 +1,6 @@
 use byteorder::{ByteOrder, LittleEndian, WriteBytesExt};
 use std::collections::HashSet;
+use std::fs::File;
 use std::io::{BufWriter, Write};
 
 #[derive(serde::Deserialize, Debug)]
@@ -23,8 +24,48 @@ struct Tag {
 }
 
 struct Metric {
+    id: usize,
     name: String,
-    tags: HashSet<Tag>,
+    // tags: HashSet<Tag>,
+    writer: BufWriter<File>,
+}
+
+impl Metric {
+    pub fn new(id: usize, name: &str, filename: &str) -> Metric {
+        let file = File::create(filename).unwrap();
+        Metric {
+            id,
+            name: String::from(name),
+            // tags: HashSet<Tag>::new(),
+            writer: BufWriter::new(file),
+        }
+    }
+}
+
+pub struct Database {
+    name: String,
+    metrics: Vec<Metric>,
+}
+
+impl Database {
+    pub fn new(name: &str) -> Database {
+        Database {
+            name: String::from(name),
+            metrics: Vec::new(),
+        }
+    }
+
+    pub fn add_sample_u64(&mut self, id: usize, sample: Sample<u64, File>) {
+        let writer: &mut BufWriter<File> = &mut self.metrics.get_mut(id).unwrap().writer;
+        sample.write(writer);
+    }
+
+    pub fn add_metric(&mut self, name: &str, filename: &str) -> usize {
+        let id = self.metrics.len();
+        let metric = Metric::new(id, name, filename);
+        self.metrics.push(metric);
+        id
+    }
 }
 
 pub struct Sample<T, U>
@@ -86,8 +127,4 @@ where
         }
         writeable.write_u64::<LittleEndian>(self.value).unwrap();
     }
-}
-
-struct MetricWriter {
-    metrics: Vec<Metric>,
 }
