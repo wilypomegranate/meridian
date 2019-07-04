@@ -1,4 +1,5 @@
 use byteorder::{ByteOrder, LittleEndian, WriteBytesExt};
+use std::collections::HashSet;
 use std::io::{BufWriter, Write};
 
 #[derive(serde::Deserialize, Debug)]
@@ -23,7 +24,7 @@ struct Tag {
 
 struct Metric {
     name: String,
-    tags: Vec<Tag>,
+    tags: HashSet<Tag>,
 }
 
 pub struct Sample<T, U>
@@ -72,6 +73,18 @@ where
             self.write_ts(writeable);
         }
         writeable.write_f64::<LittleEndian>(self.value).unwrap();
+    }
+}
+
+impl<U> Sample<u64, U>
+where
+    U: Write,
+{
+    pub fn write(&self, writeable: &mut BufWriter<U>) {
+        {
+            self.write_ts(writeable);
+        }
+        writeable.write_u64::<LittleEndian>(self.value).unwrap();
     }
 }
 

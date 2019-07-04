@@ -1,5 +1,6 @@
 use byteorder::{NativeEndian, WriteBytesExt};
 use csv::Reader;
+use meridian::*;
 use std::fs::File;
 use std::io;
 use std::io::BufWriter;
@@ -16,8 +17,10 @@ fn main() -> std::io::Result<()> {
             let mut iter = item.iter();
             let ts: u64 = iter.next().unwrap().parse().unwrap();
             let value: u64 = iter.next().unwrap().parse().unwrap();
-            buffered.write_u64::<NativeEndian>(ts).unwrap();
-            buffered.write_u64::<NativeEndian>(value).unwrap();
+            let sample: Sample<u64, File> = Sample::new(ts, value);
+            sample.write(&mut buffered);
+            // buffered.write_u64::<NativeEndian>(ts).unwrap();
+            // buffered.write_u64::<NativeEndian>(value).unwrap();
             // println!("ts: {} value: {}", ts, value);
             count += 1;
         }
