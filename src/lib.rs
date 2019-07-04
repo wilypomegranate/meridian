@@ -1,7 +1,7 @@
 use byteorder::{ByteOrder, LittleEndian, WriteBytesExt};
 use std::io::{BufWriter, Write};
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Debug)]
 pub struct NetdataMessage {
     prefix: String,
     hostname: String,
@@ -12,8 +12,8 @@ pub struct NetdataMessage {
     units: String,
     id: String,
     name: String,
-    value: f64,
-    timestamp: u32,
+    pub value: f64,
+    pub timestamp: u32,
 }
 
 struct Tag {
@@ -47,7 +47,7 @@ where
         }
     }
     fn write_ts(&self, writeable: &mut BufWriter<U>) {
-        writeable.write_u64::<LittleEndian>(self.ts);
+        writeable.write_u64::<LittleEndian>(self.ts).unwrap();
     }
 }
 
@@ -55,14 +55,23 @@ impl<U> Sample<i32, U>
 where
     U: Write,
 {
-    // fn new(ts: u64, value: i32) -> Sample<i32> {
-    //     Sample<i32>{ts, value}
-    // }
     pub fn write(&self, writeable: &mut BufWriter<U>) {
         {
             self.write_ts(writeable);
         }
-        writeable.write_i32::<LittleEndian>(self.value);
+        writeable.write_i32::<LittleEndian>(self.value).unwrap();
+    }
+}
+
+impl<U> Sample<f64, U>
+where
+    U: Write,
+{
+    pub fn write(&self, writeable: &mut BufWriter<U>) {
+        {
+            self.write_ts(writeable);
+        }
+        writeable.write_f64::<LittleEndian>(self.value).unwrap();
     }
 }
 

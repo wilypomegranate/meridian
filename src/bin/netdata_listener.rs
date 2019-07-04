@@ -13,9 +13,6 @@ use std::thread::sleep;
 use std::time::Duration;
 use threadpool::ThreadPool;
 
-// #[derive(Deserialize, Debug)]
-// struct NetdataMessage {}
-
 // fn main() -> Result<(), Box<dyn Error>> {
 fn main() {
     // let stdin = io::stdin();
@@ -63,9 +60,10 @@ fn handle_stream(stream: TcpStream) {
         if let Ok(line) = line {
             let msg: NetdataMessage =
                 serde_json::from_str(&line).expect("Got invalid JSON data from netdata.");
-            let sample: Sample<i32, File> = Sample::new(1, 2);
+            let ts: u64 = msg.timestamp as u64 * 1_000_000_000;
+            let sample: Sample<f64, File> = Sample::new(ts, msg.value);
             sample.write(&mut buffered_writer);
-            // println!("{:#?}", msg);
+            println!("{:#?}", msg);
         }
     }
     // println!("{}", String::from_utf8_lossy(&buffer));
