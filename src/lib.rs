@@ -1,5 +1,6 @@
 use byteorder::{ByteOrder, LittleEndian, WriteBytesExt};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
+use std::fs;
 use std::fs::File;
 use std::io::{BufWriter, Write};
 
@@ -45,14 +46,21 @@ impl Metric {
 pub struct Database {
     name: String,
     metrics: Vec<Metric>,
+    name_map: HashMap<String, usize>,
 }
 
 impl Database {
     pub fn new(name: &str) -> Database {
+        fs::create_dir_all(name).unwrap();
         Database {
             name: String::from(name),
             metrics: Vec::new(),
+            name_map: HashMap::new(),
         }
+    }
+
+    fn create_metric_filename(&self, name: &str) -> String {
+        format!("{}/{}", self.name, name)
     }
 
     pub fn add_sample_u64(&mut self, id: usize, sample: Sample<u64, File>) {
@@ -60,10 +68,16 @@ impl Database {
         sample.write(writer);
     }
 
-    pub fn add_metric(&mut self, name: &str, filename: &str) -> usize {
+    pub fn metric_id(&self, name: &str) -> &usize {
+        self.name_map.get(name).unwrap()
+    }
+
+    pub fn add_metric(&mut self, name: &str) -> usize {
         let id = self.metrics.len();
-        let metric = Metric::new(id, name, filename);
+        let filename = self.create_metric_filename(name);
+        let metric = Metric::new(id, name, &filename);
         self.metrics.push(metric);
+        self.name_map.insert(String::from(name), id);
         id
     }
 }

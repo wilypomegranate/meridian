@@ -13,7 +13,7 @@ fn main() -> std::io::Result<()> {
     // let mut buffered = BufWriter::new(file);
 
     let mut writer = Database::new("test");
-    let metric_id = writer.add_metric("test", "test.out");
+    let metric_id = writer.add_metric("test");
 
     for result in csv_reader.records() {
         for item in result.iter() {

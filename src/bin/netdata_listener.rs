@@ -1,5 +1,6 @@
 // use serde::{Debug, Deserialize};
 use crossbeam::crossbeam_channel::unbounded;
+use crossbeam::crossbeam_channel::Receiver;
 use meridian::*;
 use serde::Deserialize;
 use serde_json::Result;
@@ -20,6 +21,7 @@ fn main() {
     let pool = ThreadPool::new(4);
 
     let listener = TcpListener::bind("127.0.0.1:2003").unwrap();
+    let (tx, rx) = unbounded();
     for stream in listener.incoming() {
         let stream = stream.unwrap();
 
@@ -29,8 +31,10 @@ fn main() {
             stream.peer_addr().unwrap().port(),
         );
 
+        let rx = rx.clone();
+
         pool.execute(|| {
-            handle_stream(stream);
+            handle_stream(stream, rx);
         });
     }
 
@@ -50,7 +54,7 @@ fn main() {
     }
 }
 
-fn handle_stream(stream: TcpStream) {
+fn handle_stream(stream: TcpStream, rx: Receiver) {
     // let mut buffer = [0; 2048];
     // stream.read_line(&mut buffer).unwrap();
     let buffered_reader = io::BufReader::new(stream);
@@ -60,9 +64,9 @@ fn handle_stream(stream: TcpStream) {
         if let Ok(line) = line {
             let msg: NetdataMessage =
                 serde_json::from_str(&line).expect("Got invalid JSON data from netdata.");
-            let ts: u64 = msg.timestamp as u64 * 1_000_000_000;
-            let sample: Sample<f64, File> = Sample::new(ts, msg.value);
-            sample.write(&mut buffered_writer);
+            // let ts: u64 = msg.timestamp as u64 * 1_000_000_000;
+            // let sample: Sample<f64, File> = Sample::new(ts, msg.value);
+            // sample.write(&mut buffered_writer);
             println!("{:#?}", msg);
         }
     }
