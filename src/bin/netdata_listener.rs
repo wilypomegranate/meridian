@@ -54,7 +54,7 @@ fn main() {
     }
 }
 
-fn handle_stream(stream: TcpStream, rx: Receiver) {
+fn handle_stream(stream: TcpStream, rx: Receiver<Sample<f64, File>>) {
     // let mut buffer = [0; 2048];
     // stream.read_line(&mut buffer).unwrap();
     let buffered_reader = io::BufReader::new(stream);
